@@ -28,12 +28,27 @@ def main():
 
     for language_code in components_json['languages']:
         if(language_code == 'meta'): continue
-        title_lower = components_json['languages'][language_code]['title'].lower()
 
+        titles_lower = []
+        titles_lower.append(components_json['languages'][language_code]['title'].lower())
+
+        if(titles_lower[0] != language_code.lower()):
+            titles_lower.append(language_code.lower())
+
+        if "alias" in components_json['languages'][language_code]:
+            if isinstance(components_json['languages'][language_code]['alias'], str):
+                titles_lower.append(components_json['languages'][language_code]['alias'].lower())
+            else:
+                titles_lower += [item.lower() for item in components_json['languages'][language_code]['alias']]
+
+        extensions = []
         for extension_dict in extensions_json:
-            if extension_dict['name'].lower() == title_lower:
-                language_map[language_code] = [ext[1:] for ext in extension_dict['extensions']]
-                break
+            if extension_dict['name'].lower() in titles_lower:
+                extensions += extension_dict['extensions']
+        
+        print(language_code, len([ext[1:] for ext in extensions]))
+
+        language_map[language_code] = [ext[1:] for ext in extensions]
     
     with open(sys.argv[1], "w", encoding="utf-8") as file:
         json.dump(language_map, file, indent=4, sort_keys=True, ensure_ascii=False)
